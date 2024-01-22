@@ -3,8 +3,9 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-function App() {
-  const subject = "react" 
+function App(props) {
+  console.log(props)
+  const subject = props.subject 
   const [count, setCount] = useState(0)
 
   return (
