@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 
 function App(props) {
+  console.log(props.tasks)
+  const taskList = props.tasks?.map((task) => task.name)
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
@@ -46,9 +48,7 @@ function App(props) {
         role="list"
         className="todo-list stack-large stack-exception"
         aria-labelledby="list-heading">
-        <Todo />
-        <Todo />
-        <Todo />
+          {taskList}
       </ul>
     </div>
   );
