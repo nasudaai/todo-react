@@ -9,7 +9,8 @@ function Form(props) {
 
   function handleSubmit(event: any) {
     event.preventDefault();
-    props.addTask('Say Hi!')
+    props.addTask(name)
+    setName('')
   }
 
   return (
