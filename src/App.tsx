@@ -1,12 +1,65 @@
 import { nanoid } from 'nanoid'
-import { useState } from 'react'
+import { useState,  useRef, useEffect } from 'react'
 import Form from './components/Form'
 import FilterButton from './components/FilterButton'
 import Todo from './components/Todo'
 
 
+function usePrevious(value) {
+  const ref = useRef()
+  useEffect(() => {
+    ref.current = value
+  })
+  return ref.current
+}
+
+const FILTER_MAP = {
+  All: () => true,
+  Active: (task) => !task.completed,
+  Completed: (task) => task.completed, 
+}
+
+const FILTER_NAMES = Object.keys(FILTER_MAP)
+console.log(FILTER_NAMES)
+
 
 function App(props) {
+
+
+  const listHeadingRef = useRef(null)
+
+  const [filter, setFilter] = useState('All')
+
+  const filterList = FILTER_NAMES.map((name) => (
+    <FilterButton 
+      key={name} 
+      name={name}
+      isPressed={name === filter}
+      setFilter={setFilter}
+    />
+  ))
+
+  const [tasks, setTasks] = useState(props.tasks)
+  
+  const taskList = tasks
+    .filter(FILTER_MAP[filter])
+    .map((task) => (
+    <Todo 
+      id={task.id} 
+      name={task.name} 
+      completed={task.completed} 
+      key={task.id}
+      editTask={editTask}
+      toggleTaskCompleted={toggleTaskCompleted}
+      deleteTask={deleteTask}
+    />
+    )
+  )
+
+  
+
+  const tasksNoun = taskList.length !== 1 ? 'tasks' : 'task'
+  const headingText = `${taskList.length} ${tasksNoun} remaining`
 
   //
   function addTask(name) {
@@ -15,7 +68,20 @@ function App(props) {
     console.log(newTask.id)
   }
 
+  // edit
+  function editTask(id, newName) {
+    const editedTaskList = tasks.map((task) => {
 
+      if (id === task.id) {
+        // marge object 'name: property'
+        return { ...task, name: newName }
+      }
+      return task
+    })
+    setTasks(editedTaskList)
+  }
+
+  // check button 
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
 
@@ -25,7 +91,7 @@ function App(props) {
       return task;
     })
     setTasks(updatedTasks)
-    console.log(tasks[id])
+    console.log(updatedTasks)
   }
 
   function deleteTask(id) {
@@ -36,34 +102,28 @@ function App(props) {
 
   //map 
 
-  const [tasks, setTasks] = useState(props.tasks)
-  const taskList = tasks?.map((task) => {
-    return (
-    <Todo 
-      id={task.id} 
-      name={task.name} 
-      completed={task.completed} 
-      key={task.id}
-      toggleTaskCompleted={toggleTaskCompleted}
-      deleteTask={deleteTask}
-    />
-    )
-  })
+  const prevTaskLength = usePrevious(tasks.length)
 
-  const tasksNoun = taskList.length !== 1 ? 'tasks' : 'task'
-  const headingText = `${taskList.length} ${tasksNoun} remaining`
-
+  useEffect(() => {
+    if (tasks.length < prevTaskLength) {
+      listHeadingRef.current.focus()
+    }
+  }, [tasks.length, prevTaskLength])
+  
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
       <Form addTask={addTask}/> 
       
       <div className="filters btn-group stack-exception">
-        <FilterButton />
-        <FilterButton />
-        <FilterButton />     
+        {filterList}
       </div>
-      <h2 id="list-heading">{headingText}</h2>
+      <h2 
+        id="list-heading"
+        tabIndex='-1'
+        ref={listHeadingRef}>
+        {headingText}
+      </h2>
       <ul
         role="list"
         className="todo-list stack-large stack-exception"
